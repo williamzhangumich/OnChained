@@ -2,8 +2,7 @@
   <div id='app' class='container' style='width: 95%'>
     <div class='row'>
       <div class='col-sm-6'>
-        <h4>Account: </h4>
-        {{ account }}
+        <AccountCallout v-bind:account="account"></AccountCallout>    
       </div>
       <div class='col-sm-6'>
         <input  v-model="minContrib"/>
@@ -25,12 +24,14 @@
 </template>
 
 <script>
-import factory from "../../ethereum/factory";
-import ProjectManager from "../../ethereum/ProjectManager";
-import web3 from "../../ethereum/web3";
+import factory from "../../../ethereum/factory";
+import ProjectManager from "../../../ethereum/ProjectManager";
+import web3 from "../../../ethereum/web3";
+import AccountCallout from "@/components/Main/AccountCallout";
 
 export default {
   name: "Main",
+  components: { AccountCallout },
   data() {
     return {
       accountFound: false,
@@ -44,19 +45,20 @@ export default {
     await this.getAccount();
     await this.getProjects();
 
-    const this_app = this;
-    setInterval(function() {
-      this_app.getAccount();
-    }, 500);
+    setInterval(
+      () => this.getAccount(),
+      500
+    );
   },
 
   methods: {
     getAccount: async function() {
       const accounts = await web3.eth.getAccounts();
       if (accounts.length === 0) {
-        this.accountFound = false;
+        this.account = "";
+      } else {
+        this.account = accounts[0];
       }
-      this.account = accounts[0];
     },
 
     getProjects: async function() {
