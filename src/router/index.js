@@ -1,8 +1,7 @@
 import Vue from "vue";
 import Router from "vue-router";
-import Hello from "@/components/Hello";
 import Main from "@/components/Main/index";
-import Detail from "@/components/Detail";
+import Detail from "@/components/Detail/index";
 
 Vue.use(Router);
 
@@ -11,13 +10,14 @@ export default new Router({
     {
       path: "/",
       name: "Main",
-      component: Main
+      component: Main,
+      props: true
     },
-
     {
-      path: "/detail/:campaignId",
+      path: "/project/:projectAddress",
       name: "Detail",
-      component: Detail
+      component: Detail,
+      props: true
     }
   ]
 });
