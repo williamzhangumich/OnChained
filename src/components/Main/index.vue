@@ -36,10 +36,17 @@ export default {
 
   methods: {
     getProjects: async function() {
-      const foo = await ProjectManager.methods.deployedProjects(0).call();
-      console.log(foo);
-      this.projects = [foo, foo, foo, foo, foo];
-      console.log(await ProjectManager.methods.getNumProjects().call());
+      const numProjects = await ProjectManager.methods.getNumProjects().call();
+      console.log(numProjects);
+
+      //////////////////////////////
+      // [WARNING] Don't fucking call the the following if no project exists.....
+      //////////////////////////////
+
+      // const foo = await ProjectManager.methods.deployedProjects(0).call(); 
+      // console.log(foo);
+      // this.projects = [foo, foo, foo, foo, foo];
+      // console.log(await ProjectManager.methods.getNumProjects().call());
     },
     getUsers: async function() {
       const foo = await ProjectManager.methods.getUserAccounts().call();

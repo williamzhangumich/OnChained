@@ -1,4 +1,4 @@
-pragma solidity ^0.4.22;
+pragma solidity ^0.4.24;
 
 contract ProjectManager {
     /*
@@ -54,7 +54,10 @@ contract ProjectManager {
     
     // args for remix testing 
     // "test 1","test 1 desc", ["0x7c48c0E144ade759155067502e1aaC41DF9dc28C", "0xC66ae400Ab10127Cc3939326146A6924Ff72D578", "0x0C7C1d31448B0A1f85B23DB2B11c1Efdd2a02ccA"]
-    // "test 11","test 11 desc", ["0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db"]
+    
+    // "test 2","test 12222 desc", ["0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db"]
+    
+
     
     function newProject (string _title, string _description, 
         address[] holderAddresses) public {
@@ -66,8 +69,10 @@ contract ProjectManager {
         // end validations
         
         // deploy ShareVoteProject contract
-        address newDeployedProject = new SharesVoteProject(_title, _description, 
-            address(this), holderAddresses);
+        address newDeployedProject = new SharesVoteProject(
+            _title, _description, 
+            // address(this), 
+            holderAddresses);
         
         // create and store project summary    
         ProjectSummary memory projectSummary = ProjectSummary({
@@ -90,7 +95,7 @@ contract ProjectManager {
 contract SharesVoteProject {
     
     struct ShareHolder {
-        string userId;
+        // string userId;
         address account;
         uint share;
     }
@@ -103,36 +108,40 @@ contract SharesVoteProject {
     
     string public title;
     string public description;
-    uint numVotes;
-    bool voteComplete;
+    uint public numVotes;
+    bool public voteComplete;
     bool public shareDetermined;
     uint public timeCreated;
     uint public timeShareDetermined;
     
     ShareHolder[] public shareHolders;
+    address[] public shareHolderAccounts;
     mapping(address=>bool) uniqueHolderAddressMap;
     mapping(address=>bool) votedMap;
+    
     Vote[] private votes;
+    mapping(address=>uint) shareSum;
     
     constructor (string _title, string _description, 
-        address managerContract,
+        // address managerContract,
         address[] _holderAddresses
         ) public {
         title = _title;
         description = _description;
         
         // create list of ShareHolder structs by looking up userId
-        ProjectManager manager = ProjectManager(managerContract);
+        // ProjectManager manager = ProjectManager(managerContract);
         for (uint i=0; i<_holderAddresses.length; i++) {
             address _address = _holderAddresses[i];
             
             require(!uniqueHolderAddressMap[_address], 'duplicated user account found');
             uniqueHolderAddressMap[_address] = true;
+            shareHolderAccounts.push(_address);
             
             // look up userId to create holder struct
-            string memory _userId = manager.userIdForAccount(_address);
+            // string memory _userId = manager.userIdForAccount(_address);
             ShareHolder memory holder = ShareHolder({
-                userId: _userId,
+                // userId: _userId,
                 account: _address,
                 share: 0
             });
@@ -145,8 +154,21 @@ contract SharesVoteProject {
         timeCreated = now;
     }
     
+    function getShareHolderAccounts() public view returns(address[]){
+        return shareHolderAccounts;
+    }
+    
+    function getVotedStatus(address holderAddress) public view returns(bool){
+        return votedMap[holderAddress] == true;
+    }
+    
     //example
     // ["0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db"], [30, 30, 40]
+    // ["0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db"], [30, 20, 50]
+    // ["0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db"], [20, 40, 40]
+    
+    // ["0x7c48c0E144ade759155067502e1aaC41DF9dc28C", "0xC66ae400Ab10127Cc3939326146A6924Ff72D578"], [40, 60]
+    // ["0x7c48c0E144ade759155067502e1aaC41DF9dc28C", "0xC66ae400Ab10127Cc3939326146A6924Ff72D578"], [50, 50]
     function vote(address[] contributors, uint[] votePcts) public {
         // require valid voter and contirbutor list
         require(contributors.length == votePcts.length);
@@ -168,6 +190,7 @@ contract SharesVoteProject {
             shares: votePcts
         });
         votes.push(_vote);
+        
         numVotes += 1;
         
         // mark voting complete if all contributors voted
@@ -177,7 +200,38 @@ contract SharesVoteProject {
     }
     
     // Payment and split (fallback function)
-
+    
+    function finalizeShares() public {
+        
+        require(voteComplete, "require all votes");
+        require(votedMap[msg.sender]);
+        
+        for (uint i=0; i<votes.length; i++) {
+            for (uint j=0; j<votes[i].holders.length; j++) {
+                uint shareWithPrecision = votes[i].shares[j] ;
+                shareSum[votes[i].holders[j]] += shareWithPrecision;
+            }
+        }
+        uint currentShareTotal = 0;
+        for (uint k=0; k<shareHolders.length - 1; k++) {
+            ShareHolder storage holder = shareHolders[k];
+            uint curShare = shareSum[holder.account] / shareHolders.length;
+            holder.share = curShare;
+            currentShareTotal += curShare;
+        }
+        ShareHolder storage lastHolder = shareHolders[shareHolders.length - 1];
+        lastHolder.share = 100 - currentShareTotal;
+        
+        shareDetermined = true;
+        timeShareDetermined = now;
+        
+        // TODO: pageRank implementation
+    }
+    
+    function getShareSum(address holder) public view returns (uint){
+        return shareSum[holder];
+    }
+    
     function () public payable {
         
         uint balance = msg.value;
@@ -186,7 +240,8 @@ contract SharesVoteProject {
         
         // TODO: use share pct istead of even split :D
         for(uint i=0; i<l-1; i++){
-            uint amt = balance/l;
+            ShareHolder memory curHolder = shareHolders[i];
+            uint amt = balance * curHolder.share / 100;
             shareHolders[i].account.transfer(amt);
             spentAmt += amt;
         }
