@@ -10,6 +10,7 @@ contract ProjectManager {
         address deployedAddress;
         string title;
         string description;
+        uint numContributors;
     }
     
     address[] public userAccounts;
@@ -47,8 +48,13 @@ contract ProjectManager {
         return addressUserMap[_address];
     }
     
+    function getUserAccounts() public view returns (address[]){
+        return userAccounts;
+    }
+    
     // args for remix testing 
-    // "test","test desc", ["0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db"]
+    // "test 1","test 1 desc", ["0x7c48c0E144ade759155067502e1aaC41DF9dc28C", "0xC66ae400Ab10127Cc3939326146A6924Ff72D578", "0x0C7C1d31448B0A1f85B23DB2B11c1Efdd2a02ccA"]
+    // "test 11","test 11 desc", ["0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db"]
     
     function newProject (string _title, string _description, 
         address[] holderAddresses) public {
@@ -67,11 +73,16 @@ contract ProjectManager {
         ProjectSummary memory projectSummary = ProjectSummary({
             deployedAddress: newDeployedProject,
             title: _title,
-            description: _description
+            description: _description,
+            numContributors: holderAddresses.length
         });
             
         deployedProjects.push(projectSummary);
         
+    }
+    
+    function getNumProjects() public view returns (uint){
+        return deployedProjects.length;
     }
 
 }
@@ -86,18 +97,21 @@ contract SharesVoteProject {
     
     struct Vote {
         address voter;
-        address holder;
-        uint share;
+        address[] holders;
+        uint[] shares;
     }
     
     string public title;
     string public description;
+    uint numVotes;
+    bool voteComplete;
     bool public shareDetermined;
     uint public timeCreated;
     uint public timeShareDetermined;
     
     ShareHolder[] public shareHolders;
     mapping(address=>bool) uniqueHolderAddressMap;
+    mapping(address=>bool) votedMap;
     Vote[] private votes;
     
     constructor (string _title, string _description, 
@@ -125,12 +139,42 @@ contract SharesVoteProject {
             shareHolders.push(holder);
         }
         
+        numVotes = 0;
+        voteComplete = false;
         shareDetermined = false;
         timeCreated = now;
     }
     
-    // vote
-    // and finalize shares when everyone voted
+    //example
+    // ["0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db"], [30, 30, 40]
+    function vote(address[] contributors, uint[] votePcts) public {
+        // require valid voter and contirbutor list
+        require(contributors.length == votePcts.length);
+        require(uniqueHolderAddressMap[msg.sender]);
+        
+        require(!votedMap[msg.sender], "can only vote once");
+        votedMap[msg.sender] = true;
+        
+        uint total = 0;
+        for (uint i=0; i<contributors.length; i++) {
+            require(uniqueHolderAddressMap[contributors[i]]);
+            total += votePcts[i];
+        }
+        require(total == 100, 'vote pct should sum up to 100');
+
+        Vote memory _vote = Vote({
+            voter: msg.sender,
+            holders: contributors,
+            shares: votePcts
+        });
+        votes.push(_vote);
+        numVotes += 1;
+        
+        // mark voting complete if all contributors voted
+        if (numVotes == shareHolders.length) {
+            voteComplete = true;
+        }
+    }
     
     // Payment and split (fallback function)
 

@@ -55,6 +55,10 @@ export default {
     setInterval(function() {
       this_app.getAccount();
     }, 500);
+
+
+
+    test();
   },
   // watch: {
   //   // everytime a route is changed refresh the activeUser
@@ -103,7 +107,7 @@ export default {
 
     test: async function() {
 
-      const results = await ProjectManager.methods.userIds(0).call();
+      const results = await ProjectManager.methods.getUserAccounts().call();
       console.log(results);
 
       const results2 = await ProjectManager.methods.deployedProjects(0).call();

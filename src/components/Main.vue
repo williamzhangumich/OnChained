@@ -48,6 +48,8 @@ export default {
     setInterval(function() {
       this_app.getAccount();
     }, 500);
+
+    this.getUsers();
   },
 
   methods: {
@@ -63,6 +65,17 @@ export default {
       const foo = await ProjectManager.methods.deployedProjects(0).call();
       console.log(foo);
       this.projects = [foo, foo, foo, foo, foo];
+
+
+      console.log(await ProjectManager.methods.getNumProjects().call());
+    },
+
+    getUsers: async function() {
+      const foo = await ProjectManager.methods.getUserAccounts().call();
+      console.log(foo);
+      const userId = await ProjectManager.methods.userIdForAccount(foo[0]).call();
+      console.log(userId)
+      // this.projects = [foo, foo, foo, foo, foo];
     }
   }
 };
