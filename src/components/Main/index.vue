@@ -1,26 +1,12 @@
 <template>
   <div id='app' class='container' style='width: 95%'>
     <div class='row'>
-      <div class='card'>
-        <div class="card-img-top"></div>
-        <div class="card-body">
-          <h5 class="card-title">
-            Create A Project
-          </h5>
-          <p class="card-text"> <span>+</span> </p>
-        </div>     
-      </div>
-      <div  v-for='(project, i) in projects' v-bind:key='i' class='card'>
-        <div class="card-img-top"></div>
-        <div class="card-body">
-          <h5 class="card-title">
-            <router-link :to="`/project/${project.deployedAddress}`">
-              {{ project.title }}
-            </router-link>
-          </h5>
-          <p class="card-text"> {{ project.description }} </p>
-        </div>     
-      </div>
+      <NewProject></NewProject>
+      <ProjectCard v-for='(project, i) in projects' v-bind:key='i'
+        v-bind:title="project.title"
+        v-bind:address="project.deployedAddress"
+        v-bind:description="project.description"
+      ></ProjectCard>
     </div>
   </div>
 </template>
@@ -29,9 +15,12 @@
 import factory from "../../../ethereum/factory";
 import ProjectManager from "../../../ethereum/ProjectManager";
 import web3 from "../../../ethereum/web3";
+import ProjectCard from "@/components/Main/ProjectCard";
+import NewProject from "@/components/Main/NewProject";
 
 export default {
   name: "Main",
+  components: { NewProject, ProjectCard },
   props: {
     account: String
   },
@@ -66,7 +55,5 @@ export default {
 </script>
 
 <style scoped>
-  .card {
-    width: 18rem;
-  }
+
 </style>

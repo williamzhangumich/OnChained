@@ -2,6 +2,7 @@
   <div id="app">
     <header>
       <span>OnChained</span>
+      <button ref="foo" v-b-modal.new-project-modal class="btn btn-default float-right">Create Project</button>
     </header>
     <main>
       <AccountCallout v-bind:account="account"></AccountCallout>
@@ -25,6 +26,9 @@ export default {
   async created() {
     await this.getAccount();
     setInterval(() => this.getAccount(), 500);
+  },
+  updated() {
+    this.$refs.foo.click()
   },
   methods: {
     getAccount: async function() {
@@ -51,26 +55,29 @@ body {
   color: #2c3e50;
 }
 
-main {
-  text-align: center;
-}
-
 header {
   margin: 0;
   height: 56px;
   padding: 0 16px 0 24px;
   background-color: #35495e;
   color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+header .btn {
+  margin-left: auto;
 }
 
 header span {
-  display: block;
+  display: inline-block;
   position: relative;
   font-size: 20px;
   line-height: 1;
   letter-spacing: 0.02em;
   font-weight: 400;
   box-sizing: border-box;
-  padding-top: 16px;
 }
+
 </style>
