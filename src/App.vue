@@ -27,9 +27,9 @@ export default {
     await this.getAccount();
     setInterval(() => this.getAccount(), 500);
   },
-  updated() {
-    this.$refs.foo.click()
-  },
+  // updated() {
+  //   this.$refs.foo.click()
+  // },
   methods: {
     getAccount: async function() {
       const accounts = await web3.eth.getAccounts();

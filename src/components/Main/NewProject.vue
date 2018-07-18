@@ -1,19 +1,31 @@
 <template>
-  <b-modal id="new-project-modal" ref="myModalRef" title="Create A New Project">
+  <b-modal 
+    id="new-project-modal" 
+    ref="newProjectModal" 
+    title="Create A New Project">
     <div class="container">
       <div class="form-group">
         <label class="project-label">Title</label>
-        <small class="form-text text-muted">Enter a title for your project.</small>
-        <input type="text" class="form-control">
+        <small v-if="!status.title.ok" class="form-text text-muted" style="color:red !important;">
+          {{ status.title.message }}
+        </small>
+        <small v-else class="form-text text-muted">Enter a title for your project.</small>
+        <input v-model="title" type="text" class="form-control">
       </div>
       <div class="form-group">
         <label class="project-label">Description</label>
-        <small class="form-text text-muted">Enter a short description.</small>
-        <textarea type="text" class="form-control"/>
+        <small v-if="!status.description.ok" class="form-text text-muted" style="color:red !important;">
+          {{ status.description.message }}
+        </small>        
+        <small v-else class="form-text text-muted">Enter a short description.</small>
+        <textarea v-model="description" type="text" class="form-control"/>
       </div>
       <div class="form-group">
         <label class="project-label">Contributors</label>
-        <small class="form-text text-muted">Select the contributors.</small>
+        <small v-if="!status.contributors.ok" class="form-text text-muted" style="color:red !important;">
+          {{ status.contributors.message }}
+        </small>        
+        <small v-else class="form-text text-muted">Select the contributors.</small>
         <Multiselect
           v-model="selected" 
           v-bind:options="options"
@@ -22,11 +34,11 @@
       </div>
     </div>
     <div slot="modal-footer">
-      <b-btn size="sm" class="float-right" style="margin-right=6px" variant="primary" @click="show=false">
-        Save
-      </b-btn>
-      <b-btn size="sm" class="float-right" variant="secondary" @click="show=false">
+      <b-btn size="sm" variant="secondary" v-on:click="hideModal">
         Close
+      </b-btn>      
+      <b-btn size="sm" variant="primary" v-on:click="save">
+        Save
       </b-btn>
     </div>
   </b-modal>
@@ -40,14 +52,66 @@ export default {
   components: { Multiselect },
   data() {
     return {
-      selected: null,
-      options: ['list', 'of', 'options']
-    }
+      title: "",
+      description: "",
+      selected: [],
+      status: {
+        title: { ok: true, message: "Title Required" },
+        description: { ok: true, message: "Desciption Required" },
+        contributors: { ok: true, message: "At least one contributor Required" }
+      },
+      options: ["list", "of", "options"]
+    };
   },
   props: {
     display: false
+  },
+  methods: {
+    save() {
+      // this.title, this.description, Array.from(this.selected)
+      // this.title
+      // this.description
+      let ok = true;
+      const contributors = Array.from(this.selected);
+
+      this.status.title.ok = true;
+      this.status.description.ok = true;
+      this.status.contributors.ok = true;
+
+      if (this.title.trim() === "") {
+        this.status.title.ok = false
+        ok = false;
+      }
+
+      if (this.description.trim() === "") {
+        this.status.description.ok = false
+        ok = false;
+      }
+
+      if (contributors.length === 0) {
+        this.status.contributors.ok = false;
+        ok = false
+      }
+
+      if (ok === false) return;
+
+      console.log(this.title, this.description, contributors);
+
+      this.hideModal();
+    },
+    hideModal() {
+      this.$refs.newProjectModal.hide();
+    }
   }
 };
+
+// const result = await ProjectManager.methods.newProject('test title', 'test desc',
+//   ['0xc66ae400ab10127cc3939326146a6924ff72d578',
+//   '0x0c7c1d31448b0a1f85b23db2b11c1efdd2a02cca',
+//   '0x7c48c0e144ade759155067502e1aac41df9dc28c']).send({
+//     from: this.account,
+//     gas: '1000000'
+//   })
 </script>
 
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
