@@ -1,12 +1,11 @@
+
 <template>
-  <div>
-  <template v-if="accountFound">
-    <h3>Account:</h3> {{ account }}
-  </template>
-  <template v-else>
-    No account
-  </template>   
+  <div v-if="accountFound" class="alert alert-success">
+    Account Found! 
   </div>
+  <div v-else class="alert alert-danger">
+    No Account Found
+  </div>   
 </template>
 
 <script>

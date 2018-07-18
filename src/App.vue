@@ -4,14 +4,38 @@
       <span>OnChained</span>
     </header>
     <main>
-      <router-view></router-view>
+      <AccountCallout v-bind:account="account"></AccountCallout>
+      <router-view v-bind:account="account"></router-view>
     </main>
   </div>
 </template>
 
 <script>
+import web3 from "../ethereum/web3";
+import AccountCallout from "@/components/AccountCallout";
+
 export default {
-  name: "app"
+  name: "app",
+  components: { AccountCallout },
+  data() {
+    return {
+      account: ""
+    };
+  },
+  async created() {
+    await this.getAccount();
+    setInterval(() => this.getAccount(), 500);
+  },
+  methods: {
+    getAccount: async function() {
+      const accounts = await web3.eth.getAccounts();
+      if (accounts.length === 0) {
+        this.account = "";
+      } else {
+        this.account = accounts[0];
+      }
+    }
+  }
 };
 </script>
 
@@ -29,7 +53,6 @@ body {
 
 main {
   text-align: center;
-  margin-top: 40px;
 }
 
 header {
