@@ -37,29 +37,27 @@
 </template>
 
 <script>
-  import Campaign from '../../ethereum/campaign';
-  import web3 from '../../ethereum/web3';
+import Campaign from "../../ethereum/campaign";
+import web3 from "../../ethereum/web3";
 
 export default {
-  name: 'detail',
-  data () {
+  name: "detail",
+  data() {
     return {
       message: this.$route.params.campaignId,
-      account: '',
+      account: "",
       selectedCampaign: {
-        address: '',
+        address: "",
         minimumContribution: 0,
         balance: 0,
         requestsLength: 0,
         approversCount: 0,
-        manager: '',
-
+        manager: ""
       },
       contribAmount: 0.5 // ether
-    }
-  }, 
+    };
+  },
   async created() {
-
     await this.getAccount();
     const this_app = this;
     setInterval(function() {
@@ -72,49 +70,49 @@ export default {
     getAccount: async function() {
       var accounts = await web3.eth.getAccounts();
       if (accounts.length == 0) {
-        alert('no eth account detection, enable metamask!')
-      } 
-      this.message = 'Bitconneeeeect!!';
+        alert("no eth account detection, enable metamask!");
+      }
+      this.message = "Bitconneeeeect!!";
       this.account = accounts[0];
     },
-    contributeToCampaign: async function(){
+    contributeToCampaign: async function() {
+      const campaign = Campaign(this.selectedCampaign.address);
 
-      const campaign = Campaign(
-        this.selectedCampaign.address
-      );
-      
       const result = await campaign.methods.contribute().send({
         from: this.account,
-        gas: '1000000',
-        value: web3.utils.toWei(this.contribAmount +''),
+        gas: "1000000",
+        value: web3.utils.toWei(this.contribAmount + "")
       });
-      alert('done!')
+      alert("done!");
       this.campaignDetail(this.selectedCampaign.address);
-
     },
-    campaignDetail: async function(camp_address){
-
-      const campaign = Campaign(camp_address );
+    campaignDetail: async function(camp_address) {
+      const campaign = Campaign(camp_address);
       const result = await campaign.methods.getSummary().call();
-      const [minimumContribution,
-          balance,
-          requestsLength,
-          approversCount,
-          manager] = Object.keys(result).map((d) => {return result[d]});
+      const [
+        minimumContribution,
+        balance,
+        requestsLength,
+        approversCount,
+        manager
+      ] = Object.keys(result).map(d => {
+        return result[d];
+      });
       this.selectedCampaign.address = camp_address;
       this.selectedCampaign.minimumContribution = +minimumContribution;
-      this.selectedCampaign.balance =  web3.utils.fromWei(''+balance, 'ether') ;
+      this.selectedCampaign.balance = web3.utils.fromWei("" + balance, "ether");
       this.selectedCampaign.requestsLength = +requestsLength;
       this.selectedCampaign.approversCount = +approversCount;
       this.selectedCampaign.manager = manager;
-    },
+    }
   }
-}
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
-h1, h2 {
+h1,
+h2 {
   font-weight: normal;
 }
 
@@ -129,6 +127,6 @@ li {
 }
 
 a {
-  color: #35495E;
+  color: #35495e;
 }
 </style>

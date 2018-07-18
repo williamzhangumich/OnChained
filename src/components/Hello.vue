@@ -1,35 +1,28 @@
 <template>
   <div id='app' class='container' style='width: 95%'>
-
     <div class='row'>
       <div class='col-sm-6'>
         <h4>Account: </h4>
         {{ account }}
         {{ message }}
       </div>
-
       <div class='col-sm-6'>
         <input  v-model="minContrib"/>
         <a class='btn btn-secondary' v-on:click="newCampaign" v-bind:class="{ disabled: loading }"> new campaign </a>
       </div>
-
-
       <a class='btn btn-primary' v-on:click='test'>test</a>
     </div>
-
     <hr>
-
     <div class='row'>
-        <div class='col-sm-12'>
-          <ul class="list-group">
-            <li v-for='camp in campaigns' 
-              class='list-group-item' style='overflow: hidden;'>
-              <router-link :to="'/detail/'+ camp">{{ camp }}</router-link>
-
-            </li>
-          </ul>
-        </div>
-          
+      <div class='col-sm-12'>
+        <ul class="list-group">
+          <li v-for='(camp, i) in campaigns'
+            v-bind:key='i'
+            class='list-group-item' style='overflow: hidden;'>
+            <router-link :to="'/detail/'+ camp">{{ camp }}</router-link>
+          </li>
+        </ul>
+      </div>
     </div>
 
   </div>
