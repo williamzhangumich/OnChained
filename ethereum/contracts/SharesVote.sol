@@ -11,6 +11,7 @@ contract ProjectManager {
         string title;
         string description;
         uint numContributors;
+        uint timeCreated;
     }
     
     address[] public userAccounts;
@@ -57,7 +58,8 @@ contract ProjectManager {
     
     // "test 2","test 12222 desc", ["0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db"]
     
-
+    // short
+    // "test project 1","The first ever project to utilize the voting and equity contract!", ["0x7c48c0E144ade759155067502e1aaC41DF9dc28C", "0xC66ae400Ab10127Cc3939326146A6924Ff72D578"]
     
     function newProject (string _title, string _description, 
         address[] holderAddresses) public {
@@ -79,7 +81,8 @@ contract ProjectManager {
             deployedAddress: newDeployedProject,
             title: _title,
             description: _description,
-            numContributors: holderAddresses.length
+            numContributors: holderAddresses.length,
+            timeCreated: now
         });
             
         deployedProjects.push(projectSummary);
