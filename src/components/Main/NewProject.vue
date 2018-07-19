@@ -46,6 +46,7 @@
 
 <script>
 import Multiselect from "vue-multiselect";
+import ProjectManager from "../../../ethereum/ProjectManager";
 
 export default {
   name: "NewProject",
@@ -60,19 +61,20 @@ export default {
         description: { ok: true, message: "Desciption Required" },
         contributors: { ok: true, message: "At least one contributor Required" }
       },
-      options: ["list", "of", "options"]
     };
   },
   props: {
-    display: false
+    accountId: String,
+    options: Array,
+    userIdToAddress: Object
   },
   methods: {
-    save() {
+    async save() {
       // this.title, this.description, Array.from(this.selected)
       // this.title
       // this.description
       let ok = true;
-      const contributors = Array.from(this.selected);
+      const selectedIds = Array.from(this.selected);
 
       this.status.title.ok = true;
       this.status.description.ok = true;
@@ -88,14 +90,26 @@ export default {
         ok = false;
       }
 
-      if (contributors.length === 0) {
+      if (selectedIds.length === 0) {
         this.status.contributors.ok = false;
         ok = false
       }
 
-      if (ok === false) return;
+      if (ok === false) return;      
 
-      console.log(this.title, this.description, contributors);
+      const selectedAddresses = selectedIds.map(id => this.userIdToAddress[id]);
+      console.log(this.title, this.description, this.accountId, selectedAddresses);
+
+      // const newProjectPromise = ProjectManager.methods.newProject(
+      //   this.title,
+      //   this.description,
+      //   contributors).send({
+      //     from: this.accountId,
+      //     gas: '1000000'
+      //   });
+
+      // const newProject = await newProjectPromise;
+      // console.log(newProject);
 
       this.hideModal();
     },
