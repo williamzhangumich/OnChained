@@ -6,7 +6,10 @@
     </header>
     <main>
       <AccountCallout v-bind:accountAddress="accountAddress"></AccountCallout>
-      <router-view v-bind:accountAddress="accountAddress"></router-view>
+      <router-view 
+        v-on:displayProgress="displayProgress"
+        v-bind:accountAddress="accountAddress">
+      </router-view>
     </main>
   </div>
 </template>
@@ -38,6 +41,9 @@ export default {
       } else {
         this.accountAddress = accounts[0];
       }
+    },
+    displayProgress(value) {
+      console.log("app", value);
     }
   }
 };

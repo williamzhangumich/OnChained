@@ -64,7 +64,7 @@ export default {
     };
   },
   props: {
-    accountId: String,
+    accountAddress: String,
     options: Array,
     userIdToAddress: Object
   },
@@ -98,18 +98,21 @@ export default {
       if (ok === false) return;      
 
       const selectedAddresses = selectedIds.map(id => this.userIdToAddress[id]);
-      console.log(this.title, this.description, this.accountId, selectedAddresses);
+    
+      // this.$emit('saveProject', ['okay']);
+      console.log(this.title, this.description, this.accountAddress, selectedAddresses);
 
-      // const newProjectPromise = ProjectManager.methods.newProject(
-      //   this.title,
-      //   this.description,
-      //   contributors).send({
-      //     from: this.accountId,
-      //     gas: '1000000'
-      //   });
+      const newProjectPromise = ProjectManager.methods.newProject(
+        this.title,
+        this.description,
+        selectedAddresses
+        ).send({
+          from: this.accountAddress,
+          gas: '10000000'
+        });
 
-      // const newProject = await newProjectPromise;
-      // console.log(newProject);
+      const newProject = await newProjectPromise;
+      console.log(newProject);
 
       this.hideModal();
     },

@@ -2,7 +2,8 @@
   <div id='app' class='container' style='width: 95%'>
     <div class='row'>
       <NewProject
-        v-bind:accountId="accountId"
+        v-on:saveProject="displayProgress"
+        v-bind:accountAddress="accountAddress"
         v-bind:options="userIds"
         v-bind:userIdToAddress="userIdToAddress"
       ></NewProject>
@@ -26,7 +27,7 @@ export default {
   name: "Main",
   components: { NewProject, ProjectCard },
   props: {
-    accountId: String
+    accountAddress: String
   },
   data() {
     return {
@@ -37,34 +38,37 @@ export default {
     };
   },
   async created() {
-    await Promise.all([
-      this.getProjects(), 
-      this.getUsers()
-    ]);
+    await Promise.all([this.getProjects(), this.getUsers()]);
   },
-
   methods: {
+    displayProgress(value) {
+      console.log("main", value);
+      this.$emit("displayProgress", value);
+    },
     getProjects: async function() {
       const numProjects = await ProjectManager.methods.getNumProjects().call();
       const projectPromises = [];
       for (let i = 0; i < numProjects; i++) {
         projectPromises.push(ProjectManager.methods.deployedProjects(i).call());
       }
-      this.projects = await Promise.all(projectPromises)
+      this.projects = await Promise.all(projectPromises);
     },
     getUsers: async function() {
-      const userAddresses = await ProjectManager.methods.getUserAccounts().call();
-      const usersromises = userAddresses.map(userAddress => 
-        ProjectManager.methods.userIdForAccount(userAddress)
+      const userAddresses = await ProjectManager.methods
+        .getUserAccounts()
+        .call();
+      const usersromises = userAddresses.map(userAddress =>
+        ProjectManager.methods
+          .userIdForAccount(userAddress)
           .call()
           .then(userId => ({ id: userId, address: userAddress }))
       );
       const users = await Promise.all(usersromises);
 
-      this.userIds = users.map(({id}) => id);
+      this.userIds = users.map(({ id }) => id);
       this.userIdToAddress = Object.assign(
-        {}, 
-        ...users.map(({id, address}) => ({[id]: address}))
+        {},
+        ...users.map(({ id, address }) => ({ [id]: address }))
       );
     }
   }
