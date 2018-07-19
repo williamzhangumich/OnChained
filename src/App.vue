@@ -5,8 +5,8 @@
       <button ref="foo" v-b-modal.new-project-modal class="btn btn-default float-right">Create Project</button>
     </header>
     <main>
-      <AccountCallout v-bind:account="account"></AccountCallout>
-      <router-view v-bind:account="account"></router-view>
+      <AccountCallout v-bind:accountAddress="accountAddress"></AccountCallout>
+      <router-view v-bind:accountAddress="accountAddress"></router-view>
     </main>
   </div>
 </template>
@@ -20,7 +20,7 @@ export default {
   components: { AccountCallout },
   data() {
     return {
-      account: ""
+      accountAddress: ""
     };
   },
   async created() {
@@ -34,9 +34,9 @@ export default {
     getAccount: async function() {
       const accounts = await web3.eth.getAccounts();
       if (accounts.length === 0) {
-        this.account = "";
+        this.accountAddress = "";
       } else {
-        this.account = accounts[0];
+        this.accountAddress = accounts[0];
       }
     }
   }

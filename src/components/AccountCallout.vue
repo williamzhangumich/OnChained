@@ -17,12 +17,12 @@ export default {
     }
   },
   watch: {
-    account() {
-      this.accountFound = this.account !== "";
+    accountAddress() {
+      this.accountFound = this.accountAddress !== "";
     }
   },
   props: {
-    account: String
+    accountAddress: String
   }
 };
 </script>
