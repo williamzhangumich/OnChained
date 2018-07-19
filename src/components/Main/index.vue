@@ -18,7 +18,6 @@
 
 <script>
 import factory from "../../../ethereum/factory";
-import ProjectManager from "../../../ethereum/ProjectManager";
 import web3 from "../../../ethereum/web3";
 import ProjectCard from "@/components/Main/ProjectCard";
 import NewProject from "@/components/Main/NewProject";
@@ -27,49 +26,15 @@ export default {
   name: "Main",
   components: { NewProject, ProjectCard },
   props: {
-    accountAddress: String
-  },
-  data() {
-    return {
-      projects: [],
-      userIds: [],
-      userIdToAddress: {},
-      loading: false
-    };
-  },
-  async created() {
-    await Promise.all([this.getProjects(), this.getUsers()]);
+    accountAddress: String,
+    projects: Array,
+    userIds: Array,
+    userIdToAddress: Object
   },
   methods: {
     displayProgress(value) {
       this.$emit("displayProgress", value);
     },
-    getProjects: async function() {
-      const numProjects = await ProjectManager.methods.getNumProjects().call();
-      const projectPromises = [];
-      for (let i = 0; i < numProjects; i++) {
-        projectPromises.push(ProjectManager.methods.deployedProjects(i).call());
-      }
-      this.projects = await Promise.all(projectPromises);
-    },
-    getUsers: async function() {
-      const userAddresses = await ProjectManager.methods
-        .getUserAccounts()
-        .call();
-      const usersromises = userAddresses.map(userAddress =>
-        ProjectManager.methods
-          .userIdForAccount(userAddress)
-          .call()
-          .then(userId => ({ id: userId, address: userAddress }))
-      );
-      const users = await Promise.all(usersromises);
-
-      this.userIds = users.map(({ id }) => id);
-      this.userIdToAddress = Object.assign(
-        {},
-        ...users.map(({ id, address }) => ({ [id]: address }))
-      );
-    }
   }
 };
 </script>

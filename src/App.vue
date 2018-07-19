@@ -8,7 +8,11 @@
       <AccountCallout v-bind:accountAddress="accountAddress"></AccountCallout>
       <router-view 
         v-on:displayProgress="displayProgress"
-        v-bind:accountAddress="accountAddress">
+        v-bind:accountAddress="accountAddress"
+        v-bind:projects="projects"
+        v-bind:userIds="userIds"
+        v-bind:userIdToAddress="userIdToAddress"
+        >
       </router-view>
     </main>
   </div>
@@ -16,6 +20,7 @@
 
 <script>
 import web3 from "../ethereum/web3";
+import ProjectManager from "../ethereum/ProjectManager";
 import AccountCallout from "@/components/AccountCallout";
 
 export default {
@@ -23,11 +28,19 @@ export default {
   components: { AccountCallout },
   data() {
     return {
-      accountAddress: ""
+      accountAddress: "",
+      projects: [],
+      userIds: [],
+      userIdToAddress: {},
+      loading: false      
     };
   },
   async created() {
-    await this.getAccount();
+    await Promise.all([
+      this.getAccount(), 
+      this.getProjects(), 
+      this.getUsers()
+    ])
     setInterval(() => this.getAccount(), 500);
   },
   // updated() {
@@ -42,9 +55,35 @@ export default {
         this.accountAddress = accounts[0];
       }
     },
+    getProjects: async function() {
+      const numProjects = await ProjectManager.methods.getNumProjects().call();
+      const projectPromises = [];
+      for (let i = 0; i < numProjects; i++) {
+        projectPromises.push(ProjectManager.methods.deployedProjects(i).call());
+      }
+      this.projects = await Promise.all(projectPromises);
+    },
     displayProgress(value) {
       console.log("app", value);
-    }
+    },
+    getUsers: async function() {
+      const userAddresses = await ProjectManager.methods
+        .getUserAccounts()
+        .call();
+      const usersPromises = userAddresses.map(userAddress =>
+        ProjectManager.methods
+          .userIdForAccount(userAddress)
+          .call()
+          .then(userId => ({ id: userId, address: userAddress }))
+      );
+      const users = await Promise.all(usersPromises);
+
+      this.userIds = users.map(({ id }) => id);
+      this.userIdToAddress = Object.assign(
+        {},
+        ...users.map(({ id, address }) => ({ [id]: address }))
+      );
+    },
   }
 };
 </script>
