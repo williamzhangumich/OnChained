@@ -39,7 +39,7 @@ export default {
       projects: [],
       userIds: [],
       userIdToAddress: {},
-      loading: true
+      loading: false
     };
   },
   async created() {
