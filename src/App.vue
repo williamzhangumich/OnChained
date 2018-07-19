@@ -2,7 +2,10 @@
   <div id="app">
     <header>
       <span>OnChained</span>
-      <button ref="foo" v-b-modal.new-project-modal class="btn btn-default float-right">Create Project</button>
+      <NewProjectStatus v-bind:loading="loading"></NewProjectStatus>
+      <button ref="foo" v-b-modal.new-project-modal class="btn btn-default float-right">
+        Create Project
+      </button>
     </header>
     <main>
       <AccountCallout v-bind:accountAddress="accountAddress"></AccountCallout>
@@ -22,30 +25,27 @@
 import web3 from "../ethereum/web3";
 import ProjectManager from "../ethereum/ProjectManager";
 import AccountCallout from "@/components/AccountCallout";
+import NewProjectStatus from "@/components/NewProjectStatus";
 
 export default {
   name: "app",
-  components: { AccountCallout },
+  components: {
+    NewProjectStatus,
+    AccountCallout
+  },
   data() {
     return {
       accountAddress: "",
       projects: [],
       userIds: [],
       userIdToAddress: {},
-      loading: false      
+      loading: true
     };
   },
   async created() {
-    await Promise.all([
-      this.getAccount(), 
-      this.getProjects(), 
-      this.getUsers()
-    ])
+    await Promise.all([this.getAccount(), this.getProjects(), this.getUsers()]);
     setInterval(() => this.getAccount(), 500);
   },
-  // updated() {
-  //   this.$refs.foo.click()
-  // },
   methods: {
     getAccount: async function() {
       const accounts = await web3.eth.getAccounts();
@@ -64,7 +64,11 @@ export default {
       this.projects = await Promise.all(projectPromises);
     },
     displayProgress(value) {
-      console.log("app", value);
+      this.loading = true;
+      value.then(() => {
+        this.loading = false;
+        this.getProjects();
+      });
     },
     getUsers: async function() {
       const userAddresses = await ProjectManager.methods
@@ -83,7 +87,7 @@ export default {
         {},
         ...users.map(({ id, address }) => ({ [id]: address }))
       );
-    },
+    }
   }
 };
 </script>
@@ -112,7 +116,7 @@ header {
 }
 
 header .btn {
-  margin-left: auto;
+  margin-left: 1rem;
 }
 
 header span {
@@ -123,6 +127,6 @@ header span {
   letter-spacing: 0.02em;
   font-weight: 400;
   box-sizing: border-box;
+  margin-right: auto;
 }
-
 </style>
