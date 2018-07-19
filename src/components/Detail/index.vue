@@ -5,9 +5,9 @@
       <div class='row'>
         <div class='col-lg-12'>
           <h4>{{ projectName }}</h4>
-          Address: <span>{{ projectAddress }} </span>
-
-
+          <p>Description: <span>{{ description }} </span></p> 
+          <p>Address: <span>{{ projectAddress }} </span></p>
+          <p>Votes Submitted: <strong>{{ votedCount }} / {{ contributors.length }} </strong></p>
           
           <template v-if="votedStatus">
             <div>
@@ -15,6 +15,7 @@
             </div>
             
           </template>
+
           <template v-else>
             <div>
               <p class='text-info'><h5>Plus Submit Your Vote Below</h5></p>
@@ -27,13 +28,38 @@
                   <tr v-for="(user, index) in contributors" >
                     <td>{{ user.userId }}</td>
                     <td>{{ user.address }}</td>
-                    <td><input v-model="user.share" type="number"> </td>  
+                    <td><input v-model="user.share" type="number" v-on:keyup="shareHandler"> </td>  
                   </tr>
+                  <tr>
+                    <td></td>
+                    <td>Shares Assigned:</td>
+                    <td><input v-model="totalShares" type="number" readonly> </td>  
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td>Remaining Shares:</td>
+                    <td><input v-model="remainigShares" type="number" readonly> </td>  
+                  </tr>
+
+
                 </tbody>
               </table>
 
+              <div v-if="totalShares==100" class="alert alert-success">
+                Ready to Submit Vote!
+              </div>
+              <div v-else class="alert alert-warning">
+                Please make sure the ownership percentail sum up to 100%
+              </div>   
+
             </div>
-            
+            <button class='btn btn-info pull-right' 
+              v-bind:disabled="disableSubmit"
+              ref='submit'
+              v-on:click="SubmitVote">Submit Vote!</button>
+            <div v-if="loading" class="alert alert-warning" style='margin-top:15px;'>
+              <i class="fas fa-spinner fa-spin"></i> Submitting Vote! Please wait 15-20 seconds!
+            </div>
           </template>
         </div>
       </div>
@@ -52,7 +78,7 @@
   export default {
     name: "Detail",
     props: {
-      account: String
+      accountAddress: String
     },
     data() {
       return {
@@ -60,28 +86,78 @@
         projectInstance: null,
         projectName: '',
         votedStatus: null,
-        contributors:[]
+        contributors:[],
+        remainigShares: 100,
+        totalShares:0,
+        votedCount:0,
+
+        disableSubmit: true,
+        loading:false,
+
+        title:'',
+        description:'',
       };
     },
     async created() {
 
       this.projectInstance = SharesVoteProject(this.projectAddress);
       this.projectName = await this.projectInstance.methods.title().call();
+      this.description = await this.projectInstance.methods.description().call();
 
-      this.votedStatus = await this.projectInstance.methods.getVotedStatus(this.account).call();
+      this.votedStatus = await this.projectInstance.methods.getVotedStatus(this.accountAddress).call();
+      this.votedCount = await this.projectInstance.methods.numVotes().call();
 
       const userAddresses = await this.projectInstance.methods.getShareHolderAccounts().call();
-      console.log(userAddresses);
+      
       const usersromises = userAddresses.map(userAddress => 
         ProjectManager.methods.userIdForAccount(userAddress)
           .call()
           .then(userId => ({ userId: userId, address: userAddress, share: 0 }))
       );
       this.contributors = await Promise.all(usersromises);
-      console.log(this.contributors)
+      // console.log(this.contributors)
 
     },
-    methods: {}
+    methods: {
+      shareHandler: function(){
+        this.$router.go(this.$router.currentRoute)
+        let total = 0;
+        for (var i=0; i<this.contributors.length; i++){
+          total += +this.contributors[i].share
+        }
+        this.totalShares = total;
+        this.remainigShares = 100 - total;
+        this.disableSubmit= this.totalShares != 100;
+
+      },
+      SubmitVote: async function(){
+
+        this.disableSubmit = true;
+        const accounts = this.contributors.map((d)=>{
+          return d.address;
+        })
+        const shares = this.contributors.map((d)=>{
+          return +d.share;
+        })
+        // console.log(+accounts)
+        // console.log(shares)
+
+        this.loading=true;
+
+        const voteResult = await this.projectInstance.methods.vote(
+          accounts,
+          shares,
+        ).send({
+          from: this.accountAddress,
+          // gas: '10000000'
+        });
+
+        
+      // console.log(newProject);
+
+
+      }
+    }
   };
 </script>
 
