@@ -34,7 +34,7 @@ export default {
   .card {
     width: 18rem;
     min-height: 12rem;
-    margin: 1rem;
+    margin: 1rem auto;
     border: none;
   }
 

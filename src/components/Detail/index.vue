@@ -120,7 +120,7 @@
     },
     methods: {
       shareHandler: function(){
-        this.$router.go(this.$router.currentRoute)
+        
         let total = 0;
         for (var i=0; i<this.contributors.length; i++){
           total += +this.contributors[i].share
@@ -151,7 +151,7 @@
           from: this.accountAddress,
           // gas: '10000000'
         });
-
+        this.$router.go(this.$router.currentRoute)
         
       // console.log(newProject);
 

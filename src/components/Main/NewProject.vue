@@ -107,12 +107,10 @@ export default {
         this.description,
         selectedAddresses
         ).send({
-          from: this.accountAddress,
-          gas: '10000000'
+          from: this.accountAddress
         });
 
-      const newProject = await newProjectPromise;
-      console.log(newProject);
+        this.$emit('saveProject', newProjectPromise);
 
       this.hideModal();
     },

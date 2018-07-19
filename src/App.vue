@@ -2,34 +2,48 @@
   <div id="app">
     <header>
       <span>OnChained</span>
-      <button ref="foo" v-b-modal.new-project-modal class="btn btn-default float-right">Create Project</button>
+      <NewProjectStatus v-bind:loading="loading"></NewProjectStatus>
+     
     </header>
     <main>
       <AccountCallout v-bind:accountAddress="accountAddress"></AccountCallout>
-      <router-view v-bind:accountAddress="accountAddress"></router-view>
+      <router-view 
+        v-on:displayProgress="displayProgress"
+        v-bind:accountAddress="accountAddress"
+        v-bind:projects="projects"
+        v-bind:userIds="userIds"
+        v-bind:userIdToAddress="userIdToAddress"
+        >
+      </router-view>
     </main>
   </div>
 </template>
 
 <script>
 import web3 from "../ethereum/web3";
+import ProjectManager from "../ethereum/ProjectManager";
 import AccountCallout from "@/components/AccountCallout";
+import NewProjectStatus from "@/components/NewProjectStatus";
 
 export default {
   name: "app",
-  components: { AccountCallout },
+  components: {
+    NewProjectStatus,
+    AccountCallout
+  },
   data() {
     return {
-      accountAddress: ""
+      accountAddress: "",
+      projects: [],
+      userIds: [],
+      userIdToAddress: {},
+      loading: false
     };
   },
   async created() {
-    await this.getAccount();
+    await Promise.all([this.getAccount(), this.getProjects(), this.getUsers()]);
     setInterval(() => this.getAccount(), 500);
   },
-  // updated() {
-  //   this.$refs.foo.click()
-  // },
   methods: {
     getAccount: async function() {
       const accounts = await web3.eth.getAccounts();
@@ -38,6 +52,39 @@ export default {
       } else {
         this.accountAddress = accounts[0];
       }
+    },
+    getProjects: async function() {
+      const numProjects = await ProjectManager.methods.getNumProjects().call();
+      const projectPromises = [];
+      for (let i = 0; i < numProjects; i++) {
+        projectPromises.push(ProjectManager.methods.deployedProjects(i).call());
+      }
+      this.projects = await Promise.all(projectPromises);
+    },
+    displayProgress(value) {
+      this.loading = true;
+      value.then(() => {
+        this.loading = false;
+        this.getProjects();
+      });
+    },
+    getUsers: async function() {
+      const userAddresses = await ProjectManager.methods
+        .getUserAccounts()
+        .call();
+      const usersPromises = userAddresses.map(userAddress =>
+        ProjectManager.methods
+          .userIdForAccount(userAddress)
+          .call()
+          .then(userId => ({ id: userId, address: userAddress }))
+      );
+      const users = await Promise.all(usersPromises);
+
+      this.userIds = users.map(({ id }) => id);
+      this.userIdToAddress = Object.assign(
+        {},
+        ...users.map(({ id, address }) => ({ [id]: address }))
+      );
     }
   }
 };
@@ -67,7 +114,7 @@ header {
 }
 
 header .btn {
-  margin-left: auto;
+  margin-left: 1rem;
 }
 
 header span {
@@ -78,6 +125,6 @@ header span {
   letter-spacing: 0.02em;
   font-weight: 400;
   box-sizing: border-box;
+  margin-right: auto;
 }
-
 </style>
