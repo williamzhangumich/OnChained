@@ -122,6 +122,7 @@ contract SharesVoteProject {
     address[] public shareHolderAccounts;
     mapping(address=>bool) uniqueHolderAddressMap;
     mapping(address=>bool) votedMap;
+    mapping(address=>uint) finalShareMap;
     
     Vote[] private votes;
     mapping(address=>uint) shareSum;
@@ -223,15 +224,21 @@ contract SharesVoteProject {
             ShareHolder storage holder = shareHolders[k];
             uint curShare = shareSum[holder.account] / shareHolders.length;
             holder.share = curShare;
+            finalShareMap[holder.account] = curShare;
             currentShareTotal += curShare;
         }
         ShareHolder storage lastHolder = shareHolders[shareHolders.length - 1];
         lastHolder.share = 100 - currentShareTotal;
+        finalShareMap[lastHolder.account] = lastHolder.share;
         
         shareDetermined = true;
         timeShareDetermined = now;
         
         // TODO: pageRank implementation
+    }
+    
+    function getFinalShare(address holder) public view returns (uint){
+        return finalShareMap[holder];
     }
     
     function getShareSum(address holder) public view returns (uint){

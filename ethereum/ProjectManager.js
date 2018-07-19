@@ -3,7 +3,7 @@ import ProjectManager from './build/contracts/ProjectManager.json';
 
 const instance = new web3.eth.Contract(
   ProjectManager.abi,
-  '0x25b9637cdae1be08af4e50d8ff73501fcd0d7896'
+  '0x7506c2dd5117d7ba4ac59d3d19197196e3e71217'
 );
 
 export default instance;	
