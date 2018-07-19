@@ -108,7 +108,7 @@ export default {
         selectedAddresses
         ).send({
           from: this.accountAddress,
-          gas: '10000000'
+          gas: '1000000'
         });
 
       const newProject = await newProjectPromise;
