@@ -11,22 +11,23 @@
           
           <template v-if="votedStatus">
             <div>
-              already voted
+              <p class='text-success'><h5>You've already voted, thanks!</h5></p>              
             </div>
             
           </template>
           <template v-else>
             <div>
-              voting table
+              <p class='text-info'><h5>Plus Submit Your Vote Below</h5></p>
               <table class='table table-striped'>
                 <thead>
+
                 </thead>
 
                 <tbody>
                   <tr v-for="(user, index) in contributors" >
                     <td>{{ user.userId }}</td>
                     <td>{{ user.address }}</td>
-                    
+                    <td><input v-model="user.share" type="number"> </td>  
                   </tr>
                 </tbody>
               </table>
@@ -74,7 +75,7 @@
       const usersromises = userAddresses.map(userAddress => 
         ProjectManager.methods.userIdForAccount(userAddress)
           .call()
-          .then(userId => ({ userId: userId, address: userAddress }))
+          .then(userId => ({ userId: userId, address: userAddress, share: 0 }))
       );
       this.contributors = await Promise.all(usersromises);
       console.log(this.contributors)
