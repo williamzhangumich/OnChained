@@ -42,7 +42,6 @@ export default {
   },
   methods: {
     displayProgress(value) {
-      console.log("main", value);
       this.$emit("displayProgress", value);
     },
     getProjects: async function() {

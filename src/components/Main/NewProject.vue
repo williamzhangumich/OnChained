@@ -98,21 +98,16 @@ export default {
       if (ok === false) return;      
 
       const selectedAddresses = selectedIds.map(id => this.userIdToAddress[id]);
-    
-      // this.$emit('saveProject', ['okay']);
-      console.log(this.title, this.description, this.accountAddress, selectedAddresses);
 
       const newProjectPromise = ProjectManager.methods.newProject(
         this.title,
         this.description,
         selectedAddresses
         ).send({
-          from: this.accountAddress,
-          gas: '1000000'
+          from: this.accountAddress
         });
 
-      const newProject = await newProjectPromise;
-      console.log(newProject);
+        this.$emit('saveProject', newProjectPromise);
 
       this.hideModal();
     },
